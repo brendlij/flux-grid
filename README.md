@@ -346,6 +346,13 @@ Use `column-dense` auto-flow to pack items tightly:
 
 ## Roadmap
 
-- Drag-and-drop helpers powered by the existing data attributes.
-- Serialization utilities for persisting layouts.
-- Storybook-driven docs site.
+- **Drag-and-drop helpers** – Vue 3 composables to easily reorder items using the existing `data-grid-*` attributes.
+- **Serialization utilities** – Save and restore grid layouts as JSON (useful for dashboards and dashboards).
+- **Storybook docs site** – Interactive examples and design system integration.
+- **Layout presets** – Pre-configured templates (dashboard, masonry, card grid, etc.).
+- **Container queries** – Enhanced responsive behavior with `@container` queries.
+- **Error boundaries** – Better console warnings for invalid slot content or prop misuse.
+
+## License
+
+MIT © [brendlij](https://github.com/brendlij)
