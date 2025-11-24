@@ -6,7 +6,7 @@
   gap: var(--flux-grid-gap, 1.25rem);
 }
 
-.flux-grid[data-locked='true'] {
+.flux-grid[data-locked="true"] {
   margin-inline: auto;
 }
 
@@ -19,4 +19,37 @@
   background: var(--flux-grid-item-bg, transparent);
   border-radius: var(--flux-grid-item-radius, 0.75rem);
   box-sizing: border-box;
+}
+
+/* Utility classes for content safety */
+
+.flux-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flux-truncate-lines {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--flux-truncate-lines, 2);
+}
+
+.flux-overflow-hidden {
+  overflow: hidden;
+}
+
+.flux-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.flux-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }

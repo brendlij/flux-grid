@@ -53,4 +53,19 @@ export interface FluxGridItemProps {
   zIndex?: number;
   tag?: string;
   aspectRatio?: string | number;
+  /**
+   * Internal padding. Accepts any CSS size value.
+   * Default '1rem' provides safe internal spacing.
+   */
+  padding?: string | number;
+  /**
+   * How to handle content overflow: 'hidden', 'auto', or 'visible'.
+   * Default 'hidden' prevents content from breaking the layout.
+   */
+  overflow?: "hidden" | "auto" | "visible";
+  /**
+   * Vertical alignment of content: 'start', 'center', 'end'.
+   * Default 'start' aligns content to top.
+   */
+  align?: "start" | "center" | "end";
 }

@@ -9,6 +9,7 @@ Flux Grid is a lightweight Vue 3 layout utility that lets you drop arbitrary com
 - 📱 **Responsive by default** – Auto-fit mode stretches or collapses columns at each breakpoint; flip on `locked` to freeze the layout width.
 - 🪄 **Breakpoint presets** – Declare container width ranges that retune columns, gaps, and row heights without writing media queries.
 - 🧱 **Explicit coordinates** – Pass `col`/`row` plus `colSpan`/`rowSpan` to build magazine-style grids.
+- 📦 **Self-contained cards** – `FluxCard` component with auto-sizing, slot system, and safe overflow handling.
 - 🧩 **Drop anything inside** – Slots accept plain text, cards, charts, or entire feature components.
 - 🎯 **Drag & drop ready** – Grid items expose `data-grid-*` attributes for future interaction layers.
 
@@ -240,6 +241,68 @@ import "flux-grid/style.css";
 
 Each item also exposes `data-grid-col`, `data-grid-row`, and span attributes so you can layer drag-and-drop or analytics later on.
 
+### `<FluxCard />`
+
+Self-contained card component with auto-sizing, overflow safety, and a three-slot structure (header, body, footer).
+
+| Prop          | Type                                        | Default     | Description                                                                            |
+| ------------- | ------------------------------------------- | ----------- | -------------------------------------------------------------------------------------- |
+| `aspectRatio` | `string \| number`                          | `undefined` | CSS aspect-ratio value (e.g., `"16/9"`, `1.5`). Maintains ratio regardless of content. |
+| `overflow`    | `'hidden' \| 'auto' \| 'visible'`           | `'hidden'`  | How to handle content overflow. `'hidden'` prevents layout breaking.                   |
+| `padding`     | `string \| number`                          | `'1rem'`    | Internal padding. Numbers resolve to `px`.                                             |
+| `align`       | `'start' \| 'center' \| 'end' \| 'stretch'` | `'start'`   | Vertical alignment of content within the card.                                         |
+| `tag`         | `string`                                    | `'div'`     | Root HTML element tag.                                                                 |
+| `class`       | `string`                                    | `undefined` | Additional CSS classes for custom styling.                                             |
+
+**Slots:**
+
+- `default` (body) – Primary content. Flexes to fill available space with `flex: 1`.
+- `header` – Optional header area. Useful for titles or badges.
+- `footer` – Optional footer area. Useful for actions or metadata.
+
+**Example:**
+
+```vue
+<FluxCard aspect-ratio="16/9" padding="1rem">
+  <template #header>
+    <h3>Card Title</h3>
+  </template>
+  
+  <img src="image.jpg" alt="" class="flux-cover" />
+  
+  <template #footer>
+    <p>Card footer text</p>
+  </template>
+</FluxCard>
+```
+
+## Utility Classes
+
+Flux Grid ships with CSS utility classes for safe content handling:
+
+| Class                   | Purpose                                                                     |
+| ----------------------- | --------------------------------------------------------------------------- |
+| `.flux-truncate`        | Single-line text overflow with ellipsis.                                    |
+| `.flux-truncate-lines`  | Multi-line text truncation (use `--flux-truncate-lines` to set line count). |
+| `.flux-overflow-hidden` | Hide overflow without ellipsis.                                             |
+| `.flux-cover`           | Image scaling (CSS `object-fit: cover`).                                    |
+| `.flux-contain`         | Image scaling (CSS `object-fit: contain`).                                  |
+
+**Example:**
+
+```vue
+<!-- Truncate long text -->
+<p class="flux-truncate">Very long text that will be cut off...</p>
+
+<!-- Multi-line truncation -->
+<p class="flux-truncate-lines" style="--flux-truncate-lines: 3;">
+  Text limited to 3 lines...
+</p>
+
+<!-- Safe image display -->
+<img src="photo.jpg" alt="" class="flux-cover" />
+```
+
 ## CSS Customization
 
 Flux Grid exposes CSS custom properties for theming:
@@ -337,6 +400,74 @@ Use `column-dense` auto-flow to pack items tightly:
   <!-- Items fill rows left-to-right, then columns top-to-bottom -->
 </FluxGrid>
 ```
+
+### Building custom card components with FluxCard
+
+The ideal pattern: Create domain-specific components that wrap `FluxCard` internally. The card handles all layout concerns, your component provides content.
+
+**PingCard.vue (example custom component):**
+
+```vue
+<script setup lang="ts">
+import FluxCard from "flux-grid";
+
+export interface PingCardProps {
+  name: string;
+  email: string;
+  status?: "online" | "away" | "offline";
+}
+
+defineProps<PingCardProps>();
+</script>
+
+<template>
+  <FluxCard padding="1rem">
+    <template #header>
+      <h4 style="margin: 0; font-size: 0.95rem;">{{ name }}</h4>
+    </template>
+    <div>
+      <p style="margin: 0; font-size: 0.85rem; color: var(--flux-text-muted);">
+        {{ email }}
+      </p>
+      <div
+        style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--flux-text-muted);"
+      >
+        {{ status }}
+      </div>
+    </div>
+  </FluxCard>
+</template>
+```
+
+**Usage in grid:**
+
+```vue
+<script setup lang="ts">
+import { FluxGrid, FluxGridItem } from "flux-grid";
+import PingCard from "@/components/PingCard.vue";
+
+const users = [
+  { name: "Alice", email: "alice@company.com", status: "online" },
+  { name: "Bob", email: "bob@company.com", status: "away" },
+];
+</script>
+
+<template>
+  <FluxGrid :columns="{ type: 'auto-fit', min: '280px', max: '1fr' }" :gap="20">
+    <FluxGridItem v-for="user in users" :key="user.name">
+      <PingCard :name="user.name" :email="user.email" :status="user.status" />
+    </FluxGridItem>
+  </FluxGrid>
+</template>
+```
+
+**Benefits of this pattern:**
+
+- ✅ FluxCard handles height, overflow, padding, and slot structure
+- ✅ Your component (PingCard) only worries about content and styling
+- ✅ Grid automatically sizes everything—no layout logic in custom components
+- ✅ Easy to create many domain-specific cards (UserCard, StatsCard, ChartCard, etc.)
+- ✅ Reusable across projects
 
 ## Development
 
