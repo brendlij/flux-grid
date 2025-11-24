@@ -1,22 +1,61 @@
 {
-  "name": "flux-grid",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@brendlij/flux-grid",
+  "description": "Flexible Vue 3 grid layout components with explicit or responsive track control.",
+  "version": "0.1.6",
+  "private": false,
   "type": "module",
+  "license": "MIT",
+  "author": "brendlij",
+  "homepage": "https://github.com/brendlij/flux-grid#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brendlij/flux-grid.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brendlij/flux-grid/issues"
+  },
+  "keywords": [
+    "vue",
+    "grid",
+    "layout",
+    "dashboard",
+    "css-grid"
+  ],
+  "sideEffects": [
+    "./dist/flux-grid.css"
+  ],
+  "main": "./dist/flux-grid.cjs",
+  "module": "./dist/flux-grid.js",
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/flux-grid.js",
+      "require": "./dist/flux-grid.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "bunx vite build && bunx vue-tsc -p tsconfig.lib.json --declaration --emitDeclarationOnly --outDir dist/types",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "vue": "^3.5.24"
+  "peerDependencies": {
+    "vue": "^3.4.0 || ^3.5.0"
   },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
+    "vue": "^3.5.24",
     "vue-tsc": "^3.1.4"
   }
 }

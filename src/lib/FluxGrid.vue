@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { CSSProperties } from 'vue'
 import type {
   FluxGridAutoTracks,
   FluxGridAxis,
+  FluxGridBreakpoint,
   FluxGridProps,
   FluxGridTracks,
   TrackSize
@@ -21,41 +22,109 @@ const props = withDefaults(defineProps<FluxGridProps>(), {
 })
 
 const rootTag = computed(() => props.tag)
+const rootRef = ref<HTMLElement | null>(null)
+const containerWidth = ref<number | undefined>(undefined)
+
+let resizeObserver: ResizeObserver | null = null
+let windowResizeHandler: (() => void) | null = null
+
+const activeBreakpoint = computed<FluxGridBreakpoint | undefined>(() => {
+  const rules = props.breakpoints
+  if (!rules || !rules.length) {
+    return undefined
+  }
+  return resolveActiveBreakpoint(rules, containerWidth.value)
+})
+
+const lockedState = computed(() => activeBreakpoint.value?.locked ?? props.locked)
+const autoFlowValue = computed(() => activeBreakpoint.value?.autoFlow ?? props.autoFlow)
 
 const gridStyles = computed<CSSProperties>(() => {
-  const gapValue = formatSize(props.gap, '1.25rem')
+  const gapValue = formatSize(activeBreakpoint.value?.gap ?? props.gap, '1.25rem')
   const styles: CSSProperties = {
     gap: gapValue,
-    gridAutoFlow: props.autoFlow,
-    width: props.locked ? 'max-content' : '100%',
-    maxWidth: props.locked ? undefined : '100%'
+    gridAutoFlow: autoFlowValue.value ?? 'row dense',
+    width: lockedState.value ? 'max-content' : '100%',
+    maxWidth: lockedState.value ? undefined : '100%'
   }
 
   ;(styles as Record<string, string>)['--flux-grid-gap'] = gapValue
 
-  const columnTemplate = toTrackTemplate(props.columns, {
+  const columnTemplate = toTrackTemplate(activeBreakpoint.value?.columns ?? props.columns, {
     axis: 'columns',
-    min: props.columnMin,
-    max: props.columnMax
+    min: activeBreakpoint.value?.columnMin ?? props.columnMin,
+    max: activeBreakpoint.value?.columnMax ?? props.columnMax
   })
   if (columnTemplate) {
     styles.gridTemplateColumns = columnTemplate
   }
 
-  const rowTemplate = toTrackTemplate(props.rows, {
+  const rowTemplate = toTrackTemplate(activeBreakpoint.value?.rows ?? props.rows, {
     axis: 'rows',
-    min: props.rowMin,
-    max: props.rowMax
+    min: activeBreakpoint.value?.rowMin ?? props.rowMin,
+    max: activeBreakpoint.value?.rowMax ?? props.rowMax
   })
   if (rowTemplate) {
     styles.gridTemplateRows = rowTemplate
   }
 
-  if (props.rowHeight) {
-    styles.gridAutoRows = formatSize(props.rowHeight)
+  const rowHeight = activeBreakpoint.value?.rowHeight ?? props.rowHeight
+  if (rowHeight) {
+    styles.gridAutoRows = formatSize(rowHeight)
   }
 
   return styles
+})
+
+const updateContainerWidth = () => {
+  if (!rootRef.value) {
+    return
+  }
+  containerWidth.value = rootRef.value.clientWidth
+}
+
+const stopObserving = () => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
+  if (windowResizeHandler && typeof window !== 'undefined') {
+    window.removeEventListener('resize', windowResizeHandler)
+  }
+  windowResizeHandler = null
+}
+
+const startObserving = (target: HTMLElement | null) => {
+  stopObserving()
+  if (!target) {
+    return
+  }
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      containerWidth.value = entry?.contentRect.width ?? target.clientWidth
+    })
+    resizeObserver.observe(target)
+    containerWidth.value = target.clientWidth
+    return
+  }
+
+  if (typeof window !== 'undefined') {
+    windowResizeHandler = () => updateContainerWidth()
+    window.addEventListener('resize', windowResizeHandler)
+    updateContainerWidth()
+  }
+}
+
+watch(
+  rootRef,
+  (el) => {
+    startObserving(el)
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(() => {
+  stopObserving()
 })
 
 function toTrackTemplate(
@@ -106,6 +175,68 @@ function formatSize(value?: TrackSize, fallback?: TrackSize): string {
   }
   return target
 }
+
+function resolveActiveBreakpoint(
+  definitions: FluxGridBreakpoint[],
+  width?: number
+): FluxGridBreakpoint | undefined {
+  if (!definitions.length) {
+    return undefined
+  }
+
+  if (width == null) {
+    return definitions.find((definition) => definition.minWidth == null && definition.maxWidth == null)
+  }
+
+  const matches = definitions.filter((definition) => matchesWidth(definition, width))
+  if (matches.length) {
+    return matches[matches.length - 1]
+  }
+
+  return definitions.find((definition) => definition.minWidth == null && definition.maxWidth == null)
+}
+
+function matchesWidth(definition: FluxGridBreakpoint, width: number) {
+  const min = resolveBoundary(definition.minWidth)
+  const max = resolveBoundary(definition.maxWidth)
+
+  if (min != null && width < min) {
+    return false
+  }
+  if (max != null && width > max) {
+    return false
+  }
+  return true
+}
+
+function resolveBoundary(value?: number | string) {
+  if (value == null) {
+    return undefined
+  }
+  if (typeof value === 'number') {
+    return value
+  }
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) {
+    return undefined
+  }
+  if (normalized.endsWith('px')) {
+    return Number.parseFloat(normalized)
+  }
+  if (normalized.endsWith('rem') || normalized.endsWith('em')) {
+    const factor = getRootFontSize()
+    return Number.parseFloat(normalized) * factor
+  }
+  const numeric = Number(normalized)
+  return Number.isFinite(numeric) ? numeric : undefined
+}
+
+function getRootFontSize() {
+  if (typeof window === 'undefined') {
+    return 16
+  }
+  return Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+}
 </script>
 
 <template>
@@ -114,7 +245,9 @@ function formatSize(value?: TrackSize, fallback?: TrackSize): string {
     class="flux-grid"
     role="grid"
     :style="gridStyles"
-    :data-locked="props.locked ? 'true' : undefined"
+    :data-locked="lockedState ? 'true' : undefined"
+    :data-breakpoint="activeBreakpoint?.name ?? undefined"
+    ref="rootRef"
   >
     <slot />
   </component>

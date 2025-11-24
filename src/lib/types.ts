@@ -12,7 +12,7 @@ export interface FluxGridAutoTracks {
 
 export type FluxGridTracks = TrackSize | TrackSize[] | FluxGridAutoTracks | string
 
-export interface FluxGridProps {
+export interface FluxGridLayoutProps {
   columns?: FluxGridTracks
   rows?: FluxGridTracks
   gap?: TrackSize
@@ -22,8 +22,18 @@ export interface FluxGridProps {
   rowMin?: TrackSize
   rowMax?: TrackSize
   locked?: boolean
-  tag?: string
   autoFlow?: FluxGridAutoFlow
+}
+
+export interface FluxGridBreakpoint extends FluxGridLayoutProps {
+  name?: string
+  minWidth?: number | string
+  maxWidth?: number | string
+}
+
+export interface FluxGridProps extends FluxGridLayoutProps {
+  tag?: string
+  breakpoints?: FluxGridBreakpoint[]
 }
 
 export interface FluxGridItemProps {
