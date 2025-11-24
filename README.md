@@ -69,6 +69,146 @@ const widgets = [
 </FluxGrid>
 ```
 
+### Simple card grid (auto-fit)
+
+```vue
+<script setup lang="ts">
+import { FluxGrid, FluxGridItem } from "flux-grid";
+
+const cards = [
+  { id: 1, title: "Card A" },
+  { id: 2, title: "Card B" },
+  { id: 3, title: "Card C" },
+];
+</script>
+
+<template>
+  <!-- Auto-fit columns that collapse on small screens -->
+  <FluxGrid :columns="{ type: 'auto-fit', min: '250px', max: '1fr' }" :gap="16">
+    <FluxGridItem v-for="card in cards" :key="card.id">
+      <div class="card">{{ card.title }}</div>
+    </FluxGridItem>
+  </FluxGrid>
+</template>
+```
+
+### Fixed 12-column grid (like Bootstrap)
+
+```vue
+<!-- Define 12 equal columns with explicit placement -->
+<FluxGrid :columns="12" :gap="20" locked>
+  <FluxGridItem col="1" :col-span="8">
+    <MainContent />
+  </FluxGridItem>
+  <FluxGridItem col="9" :col-span="4">
+    <Sidebar />
+  </FluxGridItem>
+</FluxGrid>
+```
+
+### Aspect ratio preservation
+
+```vue
+<!-- Perfect for image galleries or video previews -->
+<FluxGrid :columns="{ type: 'auto-fit', min: '200px', max: '1fr' }" :gap="12">
+  <FluxGridItem
+    v-for="item in items"
+    :key="item.id"
+    aspect-ratio="16/9"
+  >
+    <img :src="item.src" alt="" />
+  </FluxGridItem>
+</FluxGrid>
+```
+
+### Mixed sizes with breakpoints
+
+```vue
+<script setup lang="ts">
+import { FluxGrid, FluxGridItem } from "flux-grid";
+
+const photoBreakpoints = [
+  { columns: 1, gap: "1rem" },
+  { minWidth: 640, columns: 2, gap: "1.25rem" },
+  { minWidth: 1024, columns: 3, gap: "1.5rem" },
+  { minWidth: 1440, columns: 4, gap: "2rem" },
+];
+
+const photos = Array.from({ length: 12 }, (_, i) => ({ id: i }));
+</script>
+
+<template>
+  <FluxGrid :breakpoints="photoBreakpoints" :gap="16">
+    <FluxGridItem
+      v-for="(photo, idx) in photos"
+      :key="photo.id"
+      :col-span="idx === 0 ? 2 : 1"
+      :row-span="idx === 0 ? 2 : 1"
+    >
+      <img :src="`/photo-${idx}.jpg`" alt="" />
+    </FluxGridItem>
+  </FluxGrid>
+</template>
+```
+
+### Dashboard with hero and widgets
+
+```vue
+<script setup lang="ts">
+import { FluxGrid, FluxGridItem } from "flux-grid";
+
+const dashboardBreakpoints = [
+  { columns: 1, gap: "1rem", rowHeight: "200px" },
+  { minWidth: 768, columns: 2, gap: "1.25rem", rowHeight: "240px" },
+  { minWidth: 1200, columns: 4, gap: "1.5rem", rowHeight: "200px" },
+];
+</script>
+
+<template>
+  <FluxGrid :breakpoints="dashboardBreakpoints">
+    <!-- Hero spans full width on mobile, 2 cols on tablet, 2 cols on desktop -->
+    <FluxGridItem :col-span="1" :row-span="1">
+      <HeroCard />
+    </FluxGridItem>
+
+    <!-- Widgets fill remaining space -->
+    <FluxGridItem v-for="i in 5" :key="i">
+      <MetricWidget :index="i" />
+    </FluxGridItem>
+  </FluxGrid>
+</template>
+```
+
+### Using custom CSS for styling
+
+```vue
+<script setup lang="ts">
+import { FluxGrid, FluxGridItem } from "flux-grid";
+import "flux-grid/style.css";
+</script>
+
+<template>
+  <FluxGrid :columns="3" :gap="20" class="my-grid">
+    <FluxGridItem v-for="i in 9" :key="i" class="grid-card">
+      <div>Card {{ i }}</div>
+    </FluxGridItem>
+  </FluxGrid>
+</template>
+
+<style scoped>
+/* Override grid gap with CSS custom properties */
+:deep(.my-grid) {
+  --flux-grid-gap: 24px;
+}
+
+/* Style individual items */
+:deep(.grid-card) {
+  --flux-grid-item-bg: rgba(100, 150, 200, 0.1);
+  --flux-grid-item-radius: 12px;
+}
+</style>
+```
+
 ## API reference
 
 ### `<FluxGrid />`
@@ -99,6 +239,104 @@ const widgets = [
 | `tag`                | `string`           | `'div'`     | Wrapper element tag.                                                   |
 
 Each item also exposes `data-grid-col`, `data-grid-row`, and span attributes so you can layer drag-and-drop or analytics later on.
+
+## CSS Customization
+
+Flux Grid exposes CSS custom properties for theming:
+
+```css
+/* Grid container */
+--flux-grid-gap: 1.25rem; /* Gap between items */
+
+/* Grid items */
+--flux-grid-item-bg: transparent; /* Background color */
+--flux-grid-item-radius: 0.75rem; /* Border radius */
+```
+
+Override these in your component or globally:
+
+```css
+:root {
+  --flux-grid-gap: 2rem;
+  --flux-grid-item-bg: #f5f5f5;
+  --flux-grid-item-radius: 1rem;
+}
+```
+
+## Tips & Patterns
+
+### Responsive without breakpoints
+
+Use `auto-fit` or `auto-fill` to let CSS Grid handle responsiveness naturally:
+
+```vue
+<FluxGrid :columns="{ type: 'auto-fit', min: '16rem', max: '1fr' }">
+  <!-- Automatically wraps at viewport size -->
+</FluxGrid>
+```
+
+### Combining locked items with flexible layout
+
+Mix explicit placement with auto-flow:
+
+```vue
+<FluxGrid :columns="4" :gap="16">
+  <!-- Explicitly placed hero -->
+  <FluxGridItem col="1" :col-span="2" :row-span="2">
+    <Hero />
+  </FluxGridItem>
+  
+  <!-- Remaining items flow naturally -->
+  <FluxGridItem v-for="item in rest" :key="item.id">
+    <Card :item="item" />
+  </FluxGridItem>
+</FluxGrid>
+```
+
+### Reordering on mobile with breakpoints
+
+Adjust `colSpan` and `rowSpan` per breakpoint:
+
+```vue
+<script setup lang="ts">
+const breakpoints = [
+  {
+    name: "mobile",
+    columns: 1,
+    gap: "1rem",
+  },
+  {
+    name: "desktop",
+    minWidth: 1024,
+    columns: 2,
+    gap: "2rem",
+  },
+];
+</script>
+
+<template>
+  <FluxGrid :breakpoints="breakpoints">
+    <!-- Each item can have different appearance per breakpoint -->
+    <FluxGridItem col-span="1" row-span="1">
+      <Header />
+    </FluxGridItem>
+  </FluxGrid>
+</template>
+```
+
+### Masonry-like layout
+
+Use `column-dense` auto-flow to pack items tightly:
+
+```vue
+<FluxGrid
+  :columns="{ type: 'auto-fit', min: '200px', max: '1fr' }"
+  :gap="16"
+  auto-flow="column dense"
+>
+  <!-- Items fill rows left-to-right, then columns top-to-bottom -->
+</FluxGrid>
+```
 
 ## Development
 
