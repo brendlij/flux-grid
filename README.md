@@ -29,7 +29,11 @@ const dashboardBreakpoints = [
   { name: "stacked", columns: 1, gap: "1rem" },
   { name: "tablet", minWidth: 640, columns: 2, gap: "1.25rem" },
   { name: "desktop", minWidth: 1024, columns: 3, gap: "1.5rem" },
-  { name: "wide", minWidth: 1280, columns: { type: "auto-fit", min: "16rem", max: "1fr" } }
+  {
+    name: "wide",
+    minWidth: 1280,
+    columns: { type: "auto-fit", min: "16rem", max: "1fr" },
+  },
 ];
 
 const widgets = [
@@ -39,10 +43,7 @@ const widgets = [
 </script>
 
 <template>
-  <FluxGrid
-    :breakpoints="dashboardBreakpoints"
-    row-height="auto"
-  >
+  <FluxGrid :breakpoints="dashboardBreakpoints" row-height="auto">
     <FluxGridItem
       v-for="widget in widgets"
       :key="widget.id"
@@ -72,18 +73,18 @@ const widgets = [
 
 ### `<FluxGrid />`
 
-| Prop                      | Type                                                                                                                   | Default           | Description                                                                                                                  |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `columns`                 | `number \| string \| string[] \| { type?: 'auto-fit' \| 'auto-fill'; min?: string \| number; max?: string \| number }` | auto-fit template | Track template for columns. Numbers create equal columns, strings are passed through, objects create minmax auto-fit ranges. |
-| `rows`                    | same as `columns`                                                                                                      | `undefined`       | Optional row template. Leave unset to allow implicit rows with `rowHeight`.                                                  |
-| `gap`                     | `string \| number`                                                                                                     | `1.25rem`         | Gap between items. Numbers resolve to `px`.                                                                                  |
-| `rowHeight`               | `string \| number`                                                                                                     | `undefined`       | Sets `grid-auto-rows` so implicitly created rows share a height.                                                             |
-| `columnMin` / `columnMax` | `string \| number`                                                                                                     | `12rem` / `1fr`   | Fallbacks when columns are auto-generated.                                                                                   |
-| `rowMin` / `rowMax`       | `string \| number`                                                                                                     | `8rem` / `auto`   | Fallbacks when rows are auto-generated.                                                                                      |
-| `locked`                  | `boolean`                                                                                                              | `false`           | When `true`, the grid width is clamped to its content, producing a fixed canvas.                                             |
-| `autoFlow`                | `'row' \| 'column' \| 'dense' \| 'row dense' \| 'column dense'`                                                        | `'row dense'`     | Native `grid-auto-flow` passthrough.                                                                                         |
-| `breakpoints`             | `FluxGridBreakpoint[]`                                                                                                  | `[]`              | Ordered list of container-width presets that override any of the props above. Each entry accepts `minWidth`/`maxWidth` plus `columns`, `gap`, `rowHeight`, etc. |
-| `tag`                     | `string`                                                                                                               | `'div'`           | Root element tag.                                                                                                            |
+| Prop                      | Type                                                                                                                   | Default           | Description                                                                                                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `columns`                 | `number \| string \| string[] \| { type?: 'auto-fit' \| 'auto-fill'; min?: string \| number; max?: string \| number }` | auto-fit template | Track template for columns. Numbers create equal columns, strings are passed through, objects create minmax auto-fit ranges.                                    |
+| `rows`                    | same as `columns`                                                                                                      | `undefined`       | Optional row template. Leave unset to allow implicit rows with `rowHeight`.                                                                                     |
+| `gap`                     | `string \| number`                                                                                                     | `1.25rem`         | Gap between items. Numbers resolve to `px`.                                                                                                                     |
+| `rowHeight`               | `string \| number`                                                                                                     | `undefined`       | Sets `grid-auto-rows` so implicitly created rows share a height.                                                                                                |
+| `columnMin` / `columnMax` | `string \| number`                                                                                                     | `12rem` / `1fr`   | Fallbacks when columns are auto-generated.                                                                                                                      |
+| `rowMin` / `rowMax`       | `string \| number`                                                                                                     | `8rem` / `auto`   | Fallbacks when rows are auto-generated.                                                                                                                         |
+| `locked`                  | `boolean`                                                                                                              | `false`           | When `true`, the grid width is clamped to its content, producing a fixed canvas.                                                                                |
+| `autoFlow`                | `'row' \| 'column' \| 'dense' \| 'row dense' \| 'column dense'`                                                        | `'row dense'`     | Native `grid-auto-flow` passthrough.                                                                                                                            |
+| `breakpoints`             | `FluxGridBreakpoint[]`                                                                                                 | `[]`              | Ordered list of container-width presets that override any of the props above. Each entry accepts `minWidth`/`maxWidth` plus `columns`, `gap`, `rowHeight`, etc. |
+| `tag`                     | `string`                                                                                                               | `'div'`           | Root element tag.                                                                                                                                               |
 
 `FluxGridBreakpoint` mirrors the main layout props and adds optional `name`, `minWidth`, and `maxWidth` fields (numbers are treated as `px`, or pass CSS lengths with `px`, `rem`, or `em`). Breakpoints are evaluated against the grid's container width (powered by `ResizeObserver`), so you can preview responsive states inside design systems, docs, or Storybook without resizing the entire browser. The component exposes a `data-breakpoint` attribute reflecting the active breakpoint's `name` to help style or debug demos.
 
