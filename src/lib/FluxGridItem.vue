@@ -94,6 +94,12 @@ function formatAspect(value?: string | number) {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.flux-grid__item-body > * {
+  display: flex;
 }
 
 .flux-grid__item-body :deep(img) {
